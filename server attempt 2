@@ -1,36 +1,39 @@
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
+import java.io.InputStreamReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
+import java.net.ServerSocket;
 import java.net.Socket;
-//
-When the user at client A logs on, client A sends a HELLO (Client-ID-A) message to the
-server, using UDP transport.
-2. The server verifies that Client-ID-A is an ID on the list of subscribers. If so, the server
-retrieves the client’s secret key and sends a CHALLENGE (rand) message to the client,
-using UDP.
-3. The client responds with a RESPONSE (Res) to authenticate itself. If authentication is not
-successful, the server sends an AUTH_FAIL message to the client. Else the server
-generates an encryption key CK-A, then sends an AUTH_SUCCESS(rand_cookie,
-port_number) message to the client. The message is encrypted by CK-A.
-4. The client generates the same CK-A key, and decrypts the message. From this point on, all
-data exchanged between client A and the server is encrypted using CK-A.
-5. Client A establishes a TCP connection to the port at port_number and sends a CONNECT
-(rand_cookie) to the server. From this point on, until the TCP connection is closed, all
-data (signaling messages and chat) is exchanged over the TCP connection.
-6. The server sends CONNECTED to the client. The client is connected.
-7. The client tears down the TCP connection when the user types “Log off” or when the
-activity timer expires
-//
 
 public class chatServer {
-
-   public server{}
-
-
+    public static void main(String[] args) throws IOException {
+        
+        if (args.length != 1) {
+            System.err.println("Usage: java EchoServer <port number>");
+            System.exit(1);
+            
+        }
+        
+        int portNumber = Integer.parseInt(args[0]);
+        
+        try (
+            ServerSocket serverSocket =
+                new ServerSocket(Integer.parseInt(args[0]));
+            Socket clientSocket = serverSocket.accept();     
+            PrintWriter out =
+                new PrintWriter(clientSocket.getOutputStream(), true);                   
+            BufferedReader in = new BufferedReader(
+                new InputStreamReader(clientSocket.getInputStream()));
+        ) {
+            String inputLine;
+            while ((inputLine = in.readLine()) != null) {
+                out.println(inputLine);
+            }
+        } catch (IOException e) {
+            System.out.println("Exception caught when trying to listen on port "
+                + portNumber + " or listening for a connection");
+            System.out.println(e.getMessage());
+        }
+    }
 }
